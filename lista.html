@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lista de Tarefas</title>
+  <style>
+    /* Estilos CSS */
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    .tablet-frame {
+      background-image: url('https://img1.gratispng.com/20180320/olw/kisspng-ipad-computer-icons-clip-art-free-download-ipad-png-images-5ab138f4999703.0472777215215638926291.jpg');
+      background-size: cover;
+      background-color: #888;
+      border-radius: 30px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+      width: 80vw; /* Tamanho responsivo com base na largura da janela */
+      height: 80vh; /* Tamanho responsivo com base na altura da janela */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      width: 80%;
+      max-width: 400px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      padding: 8px;
+      font-size: 16px;
+      border: none;
+      border-radius: 4px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 8px 16px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    li span {
+      flex-grow: 1;
+      text-decoration: none;
+    }
+
+    li button {
+      margin-left: 10px;
+      background-color: #f44336;
+    }
+
+    li input[type="checkbox"] {
+      margin-right: 10px;
+    }
+
+    li.completed span {
+      text-decoration: line-through;
+      color: #fa0000;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="tablet-frame">
+    <div class="container">
+      <h1>Lista de Tarefas</h1>
+
+      <form id="taskForm">
+        <input type="text" id="taskInput" placeholder="Digite uma tarefa">
+        <button type="submit">Adicionar</button>
+      </form>
+
+      <ul id="taskList">
+        <!-- As tarefas serão adicionadas dinamicamente aqui -->
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Função para adicionar uma tarefa na lista
+    function addTask(event) {
+      event.preventDefault(); // Impede que o formulário seja enviado
+
+      var taskInput = document.getElementById('taskInput');
+      var taskList = document.getElementById('taskList');
+
+      if (taskInput.value !== '') {
+        var taskItem = document.createElement('li');
+        taskItem.innerHTML = `
+          <input type="checkbox">
+          <span>${taskInput.value}</span>
+          <button class="deleteButton">Excluir</button>
+        `;
+        taskList.appendChild(taskItem);
+        taskInput.value = ''; // Limpa o campo de input
+
+        // Adiciona um event listener para o botão de exclusão da tarefa
+        var deleteButton = taskItem.querySelector('.deleteButton');
+        deleteButton.addEventListener('click', function() {
+          taskList.removeChild(taskItem);
+          saveTasks(); // Salva a lista de tarefas após a remoção de um item
+        });
+
+        // Adiciona um event listener para o checkbox de conclusão da tarefa
+        var checkbox = taskItem.querySelector('input[type="checkbox"]');
+        checkbox.addEventListener('change', function() {
+          if (checkbox.checked) {
+            taskItem.classList.add('completed');
+          } else {
+            taskItem.classList.remove('completed');
+          }
+          saveTasks(); // Salva a lista de tarefas após alterar o estado de conclusão
+        });
+
+        saveTasks(); // Salva a lista de tarefas após adicionar um item
+      }
+    }
+
+    // Função para salvar as tarefas no armazenamento local (localStorage)
+    function saveTasks() {
+      var taskList = document.getElementById('taskList');
+      var tasks = [];
+
+      // Itera sobre cada item da lista de tarefas e adiciona ao array "tasks"
+      for (var i = 0; i < taskList.children.length; i++) {
+        var taskItem = taskList.children[i];
+        var taskText = taskItem.querySelector('span').innerText;
+        var taskCompleted = taskItem.classList.contains('completed');
+        tasks.push({ text: taskText, completed: taskCompleted });
+      }
+
+      // Converte o array de tarefas para uma string JSON e salva no localStorage
+      localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // Função para carregar as tarefas do armazenamento local (localStorage)
+    function loadTasks() {
+      var taskList = document.getElementById('taskList');
+      var tasks = localStorage.getItem('tasks');
+
+      if (tasks) {
+        tasks = JSON.parse(tasks);
+
+        // Itera sobre cada tarefa carregada e cria os elementos correspondentes na lista
+        for (var i = 0; i < tasks.length; i++) {
+          var task = tasks[i];
+          var taskItem = document.createElement('li');
+          taskItem.innerHTML = `
+            <input type="checkbox" ${task.completed ? 'checked' : ''}>
+            <span>${task.text}</span>
+            <button class="deleteButton">Excluir</button>
+          `;
+          taskList.appendChild(taskItem);
+
+          // Adiciona um event listener para o botão de exclusão da tarefa
+          var deleteButton = taskItem.querySelector('.deleteButton');
+          deleteButton.addEventListener('click', function() {
+            taskList.removeChild(taskItem);
+            saveTasks(); // Salva a lista de tarefas após a remoção de um item
+          });
+
+          // Adiciona um event listener para o checkbox de conclusão da tarefa
+          var checkbox = taskItem.querySelector('input[type="checkbox"]');
+          checkbox.addEventListener('change', function() {
+            if (checkbox.checked) {
+              taskItem.classList.add('completed');
+            } else {
+              taskItem.classList.remove('completed');
+            }
+            saveTasks(); // Salva a lista de tarefas após alterar o estado de conclusão
+          });
+        }
+      }
+    }
+
+    // Adiciona um event listener para o evento submit do formulário
+    var form = document.getElementById('taskForm');
+    form.addEventListener('submit', addTask);
+
+    // Carrega as tarefas ao carregar a página
+    loadTasks();
+  </script>
+</body>
+</html>
